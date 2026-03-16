@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresh Veggies - Premium Market</title>
+    <meta name="description" content="Shop the freshest, locally sourced vegetables online.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container nav-content">
+            <a href="#" class="logo">🌿 Fresh<span>Veggies</span></a>
+            <nav class="nav-links">
+                <a href="#home" data-en="Home" data-sw="Nyumbani">Home</a>
+                <a href="#shop" data-en="Shop" data-sw="Duka">Shop</a>
+                <a href="#" id="trackLink" data-en="Track Order" data-sw="Fuata Agizo">Track Order</a>
+            </nav>
+            <div class="nav-actions">
+                <div class="lang-toggle">
+                    <button id="langToggle" class="btn-lang" title="Badilisha Lugha">EN</button>
+                </div>
+                <div class="auth-ui" id="authUI">
+                    <button id="loginBtn" class="btn btn-outline" data-en="Login" data-sw="Ingia">Login</button>
+                </div>
+                <div class="user-profile-nav" id="userProfileNav" style="display: none;">
+                    <button class="btn btn-profile"><i class="fa-solid fa-user"></i> <span id="userNameNav">User</span></button>
+                    <div class="profile-dropdown">
+                        <a href="#" id="viewOrdersBtn" data-en="My Orders" data-sw="Agizo Zangu">My Orders</a>
+                        <a href="#" id="logoutBtn" data-en="Logout" data-sw="Ondoka">Logout</a>
+                    </div>
+                </div>
+                <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Toggle Navigation">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <button id="cartBtn" class="cart-btn" aria-label="Open Cart">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cartCount" class="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Menu -->
+    <div id="mobileNavOverlay" class="mobile-nav-overlay"></div>
+    <div id="mobileNav" class="mobile-nav">
+        <div class="mobile-nav-header">
+            <a href="#" class="logo">🌿 Fresh<span>Veggies</span></a>
+            <button id="closeMobileMenuBtn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="mobile-links">
+            <a href="#home">Home</a>
+            <a href="#shop">Shop</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        <div class="mobile-nav-footer">
+            <p>Email: hello@freshveggies.com</p>
+            <div class="social-links">
+                <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#"><i class="fa-brands fa-twitter"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>Farm Fresh to Your Door</h1>
+                <p>Discover locally sourced, organic, hand-picked vegetables to keep your family healthy and happy.</p>
+                <a href="#shop" class="btn btn-primary">Shop Now</a>
+            </div>
+            <div class="hero-image-overlay"></div>
+        </section>
+
+        <section id="shop" class="shop-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 data-en="Our Fresh Harvest" data-sw="Mavuno Yetu Mabichi">Our Fresh Harvest</h2>
+                    <p data-en="Hand-picked daily from local farmers." data-sw="Yaliyochumwa kila siku kutoka kwa wakulima wa hapa.">Hand-picked daily from local farmers.</p>
+                </div>
+                
+                <div class="shop-controls">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search veggies...">
+                    </div>
+                    <div class="sort-wrapper">
+                        <label for="sortSelect">Sort by:</label>
+                        <select id="sortSelect">
+                            <option value="default">Default</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="name-az">Name: A-Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="categories">
+                    <button class="category-btn active">All</button>
+                    <button class="category-btn">Roots</button>
+                    <button class="category-btn">Greens</button>
+                    <button class="category-btn">Alliums</button>
+                </div>
+
+                <div id="productGrid" class="product-grid">
+                    <!-- Products will be dynamically generated by JS -->
+                </div>
+            </div>
+        </section>
+        
+        <section class="features">
+            <div class="container features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-leaf"></i></div>
+                    <h3>100% Organic</h3>
+                    <p>Grown without synthetic pesticides or fertilizers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                    <h3>Fast Delivery</h3>
+                    <p>Same-day delivery for orders placed before noon.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                    <h3>Local Farmers</h3>
+                    <p>Supporting our local community directly.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="about-section">
+            <div class="container about-container">
+                <div class="about-content">
+                    <div class="section-header">
+                        <h2>Our Story</h2>
+                        <p>Rooted in community, dedicated to quality.</p>
+                    </div>
+                    <p>Founded in 2020, FreshVeggies started with a simple mission: to bridge the gap between local farmers and conscious consumers. We believe that everyone deserves access to fresh, nutritious, and ethically grown produce.</p>
+                    <p>Our team wakes up before dawn every day to hand-pick the finest vegetables from our network of trusted local farms. By shortening the supply chain, we not only deliver fresher food to your table but also support sustainable agricultural practices within our community.</p>
+                    <a href="#shop" class="btn btn-secondary mt-4">Discover Our Produce</a>
+                </div>
+                <div class="about-image">
+                    <img src="assets/field.jpg" alt="Farmers working in field" class="rounded-image">
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact-section">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2>Get In Touch</h2>
+                    <p>We'd love to hear from you. Reach out with any questions or feedback.</p>
+                </div>
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <div class="contact-card">
+                            <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+                            <h3>Visit Us</h3>
+                            <p>123 Green Valley, NY 10001</p>
+                            <p>Monday - Friday: 8am - 6pm</p>
+                        </div>
+                        <div class="contact-card">
+                            <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+                            <h3>Call Us</h3>
+                            <p>+1 (555) 123-4567</p>
+                            <p>Support is available 24/7</p>
+                        </div>
+                        <div class="contact-card">
+                            <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+                            <h3>Email Us</h3>
+                            <p>hello@freshveggies.com</p>
+                            <p>We'll reply within 24 hours</p>
+                        </div>
+                    </div>
+                    <div class="contact-form-container">
+                        <form id="contactPageForm" class="contact-form">
+                            <div class="form-group">
+                                <label for="contact-name">Name</label>
+                                <input type="text" id="contact-name" placeholder="Your Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-email">Email</label>
+                                <input type="email" id="contact-email" placeholder="Your Email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-message">Message</label>
+                                <textarea id="contact-message" rows="5" placeholder="How can we help you?" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <a href="#" class="logo">🌿 Fresh<span>Veggies</span></a>
+                <p>Bringing the best of nature directly to your table.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#shop">Shop</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#" id="trackOrderFooter">Track My Order</a></li>
+                    <li><a href="admin.html" style="color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-lock" style="font-size: 0.8rem; margin-right: 4px;"></i> Admin Panel</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact Us</h4>
+                <p><i class="fa-solid fa-location-dot"></i> 123 Green Valley, NY 10001</p>
+                <p><i class="fa-solid fa-phone"></i> +1 (555) 123-4567</p>
+                <p><i class="fa-solid fa-envelope"></i> hello@freshveggies.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 FreshVeggies. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Cart Sidebar/Drawer -->
+    <div id="cartOverlay" class="cart-overlay"></div>
+    <div id="cartDrawer" class="cart-drawer">
+        <div class="cart-header">
+            <h2>Your Cart</h2>
+            <button id="closeCartBtn" class="close-btn" aria-label="Close Cart"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be rendered here -->
+            <div class="empty-cart-message">Your cart is empty</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotalPrice">Ksh 0.00</span>
+            </div>
+            <button id="checkoutBtn" class="btn btn-primary btn-block" disabled>Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Checkout</h2>
+                <button id="closeCheckoutBtn" class="close-btn" aria-label="Close Checkout"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="checkoutForm">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number (MTN/Airtel)</label>
+                        <input type="tel" id="phone" required placeholder="07xxxxxxxx">
+                        <small style="color: var(--text-light); font-size: 0.75rem;">Enter number to receive payment prompt</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Delivery Address</label>
+                        <textarea id="address" required placeholder="123 Example St, City, Country" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="order-summary-mini">
+                        <h3>Order Summary</h3>
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span id="checkoutSubtotal">Ksh 0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Delivery</span>
+                            <span>Ksh 300.00</span>
+                        </div>
+                        <div class="summary-row total-row">
+                            <span>Total</span>
+                            <span id="checkoutTotal">Ksh 0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Place Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Orders Modal -->
+    <div id="userOrdersModal" class="modal-overlay">
+        <div class="modal profile-modal">
+            <div class="modal-header">
+                <h2 data-en="My Order History" data-sw="Historia ya Agizo Zangu">My Order History</h2>
+                <button id="closeUserOrdersBtn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="userOrdersList" class="user-orders-list">
+                    <!-- Orders will be injected here -->
+                    <p class="empty-orders" data-en="You haven't placed any orders yet." data-sw="Bado hujaweka agizo lolote.">You haven't placed any orders yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="modal success-modal">
+            <div class="success-icon"><i class="fa-solid fa-check-circle"></i></div>
+            <h2>Order Placed Successfully!</h2>
+            <p>Thank you for your purchase. Your Order ID is <strong id="displayOrderId">#0000</strong>.</p>
+            <p>Confirmation has been sent to your email.</p>
+            <button id="continueShoppingBtn" class="btn btn-secondary">Continue Shopping</button>
+        </div>
+    </div>
+
+    <!-- Order Tracking Modal -->
+    <div id="trackModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Track Your Order</h2>
+                <button id="closeTrackBtn" class="close-btn" aria-label="Close Tracking"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="trackForm">
+                    <div class="form-group">
+                        <label for="trackEmail">Email Address</label>
+                        <input type="email" id="trackEmail" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="trackOrderId">Order ID</label>
+                        <input type="text" id="trackOrderId" required placeholder="e.g. 101">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Search Order</button>
+                </form>
+                
+                <div id="trackResult" class="track-result" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                    <!-- Results will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal (Login/Signup) -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal auth-modal">
+            <div class="modal-header">
+                <h2 id="authModalTitle" data-en="Login" data-sw="Ingia">Login</h2>
+                <button id="closeAuthBtn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail" data-en="Email Address" data-sw="Barua Pepe">Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword" data-en="Password" data-sw="Nenosiri">Password</label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" data-en="Login" data-sw="Ingia">Login</button>
+                    <p class="auth-switch" data-en="Don't have an account? <a href='#' id='showSignup'>Sign Up</a>" data-sw="Huna akaunti? <a href='#' id='showSignup'>Jisajili</a>">Don't have an account? <a href="#" id="showSignup">Sign Up</a></p>
+                </form>
+
+                <form id="signupForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="signupName" data-en="Full Name" data-sw="Jina Kamili">Full Name</label>
+                        <input type="text" id="signupName" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail" data-en="Email Address" data-sw="Barua Pepe">Email Address</label>
+                        <input type="email" id="signupEmail" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword" data-en="Password" data-sw="Nenosiri">Password</label>
+                        <input type="password" id="signupPassword" required placeholder="Minimum 6 characters">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" data-en="Create Account" data-sw="Fungua Akaunti">Create Account</button>
+                    <p class="auth-switch" data-en="Already have an account? <a href='#' id='showLogin'>Login</a>" data-sw="Tayari unayo akaunti? <a href='#' id='showLogin'>Ingia</a>">Already have an account? <a href="#" id="showLogin">Login</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/254700000000?text=Hi! I have a question about the fresh veggies." class="whatsapp-float" target="_blank" title="Chat on WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+        <span class="whatsapp-badge">1</span>
+    </a>
+
+    <script src="script.js"></script>
+</body>
+</html>

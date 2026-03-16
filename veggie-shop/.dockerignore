@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+veggie.db
+.git
+.gitignore
+*.md
+LICENSE
+.gemini
+.system_generated
+brain
+tmp
