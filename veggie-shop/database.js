@@ -1,18 +1,28 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.resolve(__dirname, 'shop.db');
+const dbPath = path.resolve(process.env.DATABASE_PATH || path.join(__dirname, 'shop.db'));
+let resolveDatabaseReady;
+let rejectDatabaseReady;
+const databaseReady = new Promise((resolve, reject) => {
+    resolveDatabaseReady = resolve;
+    rejectDatabaseReady = reject;
+});
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database', err.message);
+        rejectDatabaseReady(err);
     } else {
         console.log('Connected to the SQLite database.');
         initDb();
     }
 });
+db.ready = databaseReady;
 
 function initDb() {
     db.serialize(() => {
+        db.run('PRAGMA foreign_keys = ON');
+
         // Create Products Table
         db.run(`CREATE TABLE IF NOT EXISTS Products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,8 +43,30 @@ function initDb() {
             password TEXT NOT NULL,
             address TEXT,
             phone TEXT,
+            is_admin BOOLEAN DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
+
+        db.all("PRAGMA table_info(Users)", (err, rows) => {
+            if (err) {
+                console.error('Error checking Users schema:', err.message);
+                rejectDatabaseReady(err);
+                return;
+            }
+
+            if (!rows.some((column) => column.name === 'is_admin')) {
+                db.run('ALTER TABLE Users ADD COLUMN is_admin BOOLEAN DEFAULT 0', (alterErr) => {
+                    if (alterErr) {
+                        console.error('Error adding is_admin column:', alterErr.message);
+                        rejectDatabaseReady(alterErr);
+                    } else {
+                        resolveDatabaseReady();
+                    }
+                });
+            } else {
+                resolveDatabaseReady();
+            }
+        });
 
         // Create Orders Table
         db.run(`CREATE TABLE IF NOT EXISTS Orders (
@@ -180,7 +212,7 @@ function initDb() {
                     { name: "Turnips", price: 300.00, weight: "500 g", category: "Roots", image: "assets/turnip.jpg", badge: null },
                     { name: "Parsnips", price: 525.00, weight: "500 g", category: "Roots", image: "assets/parsnips.jpg", badge: "Winter Special" },
                     // New Greens
-                    { name: "Kale", price: 450.00, weight: "1 bunch", category: "Greens", image: "https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?auto=format&fit=crop&q=80&w=500", badge: "Superfood" },
+                    { name: "Curly Kale", price: 450.00, weight: "1 bunch", category: "Greens", image: "https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?auto=format&fit=crop&q=80&w=500", badge: "Superfood" },
                     { name: "Swiss Chard", price: 525.00, weight: "1 bunch", category: "Greens", image: "assets/swisschard.jpg", badge: "Organic" },
                     { name: "Bok Choy", price: 375.00, weight: "2 heads", category: "Greens", image: "assets/bokchoy.jpg", badge: "Fresh" },
                     { name: "Arugula (Rocket)", price: 675.00, weight: "150 g", category: "Greens", image: "assets/arugula.jpg", badge: "Spicy" },

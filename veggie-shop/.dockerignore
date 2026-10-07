@@ -1,6 +1,8 @@
 node_modules
 npm-debug.log
-veggie.db
+*.db
+.env
+.env.*
 .git
 .gitignore
 *.md

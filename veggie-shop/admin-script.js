@@ -40,6 +40,11 @@ navItems.forEach(item => {
 
 // Initialize Dashboard
 async function initDashboard() {
+    const isAllowed = await ensureAdminAccess();
+    if (!isAllowed) {
+        return;
+    }
+
     await fetchProducts();
     await fetchOrders();
     updateStats();
@@ -47,11 +52,51 @@ async function initDashboard() {
     renderOrders();
 }
 
+async function ensureAdminAccess() {
+    const token = sessionStorage.getItem('token');
+
+    if (!token) {
+        window.location.replace('index.html?adminLogin=1');
+        return false;
+    }
+
+    try {
+        const response = await fetch('/api/admin/me', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.status === 401) {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            window.location.replace('index.html?adminLogin=1');
+            return false;
+        }
+
+        if (response.status === 403) {
+            window.location.replace('index.html?adminDenied=1');
+            return false;
+        }
+
+        if (!response.ok) throw new Error(`Admin verification failed (${response.status}).`);
+
+        return true;
+    } catch (error) {
+        console.error('Admin access check failed:', error);
+        document.body.innerHTML = '<main style="padding:2rem;font-family:system-ui"><h1>Admin portal unavailable</h1><p>Could not verify admin access. Please check the connection and reload.</p></main>';
+        return false;
+    }
+}
+
 // Fetch Data
 async function fetchProducts() {
     try {
-        const response = await fetch('/api/products');
-        allProducts = await response.json();
+        const token = sessionStorage.getItem('token');
+        const response = await fetch('/api/products', {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error(`Products request failed (${response.status}).`);
+        const products = await response.json();
+        allProducts = Array.isArray(products) ? products : [];
     } catch (err) {
         console.error('Error fetching products:', err);
     }
@@ -59,8 +104,13 @@ async function fetchProducts() {
 
 async function fetchOrders() {
     try {
-        const response = await fetch('/api/admin/orders');
-        allOrders = await response.json();
+        const token = sessionStorage.getItem('token');
+        const response = await fetch('/api/admin/orders', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error(`Orders request failed (${response.status}).`);
+        const orders = await response.json();
+        allOrders = Array.isArray(orders) ? orders : [];
     } catch (err) {
         console.error('Error fetching orders:', err);
     }
@@ -71,7 +121,8 @@ function updateStats() {
     totalOrdersCount.innerText = allOrders.length;
     totalProductsCount.innerText = allProducts.length;
     
-    const revenue = allOrders.reduce((sum, order) => sum + order.total_price, 0);
+    const revenue = allOrders.reduce((sum, order) =>
+        order.payment_status === 'paid' ? sum + Number(order.total_price || 0) : sum, 0);
     totalRevenueAmount.innerText = `Ksh ${revenue.toLocaleString()}`;
 }
 
@@ -110,7 +161,7 @@ function renderOrders() {
             <td>${order.customer_name}</td>
             <td>${new Date(order.order_date).toLocaleDateString()}</td>
             <td>Ksh ${order.total_price}</td>
-            <td><span style="color: #22c55e; font-weight: 600">Paid</span></td>
+            <td>${formatPaymentStatus(order.payment_status)}</td>
         `;
         recentOrdersTableBody.appendChild(tr);
     });
@@ -119,10 +170,12 @@ function renderOrders() {
     fullOrdersTableBody.innerHTML = '';
     allOrders.forEach(order => {
         const tr = document.createElement('tr');
-        const statusOptions = ['Processing', 'In Transit', 'Delivered', 'Cancelled'];
+        const statusOptions = order.status === 'Pending Payment'
+            ? ['Pending Payment', 'Payment Cancelled']
+            : [...new Set([order.status, 'Cancelled'])];
         const selectHtml = `
             <select class="status-select" onchange="updateStatus(${order.id}, this.value)">
-                ${statusOptions.map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                ${statusOptions.map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt === 'In Transit' ? 'Shipped' : opt}</option>`).join('')}
             </select>
         `;
         
@@ -136,18 +189,27 @@ function renderOrders() {
             <td>${order.items_summary}</td>
             <td>${new Date(order.order_date).toLocaleString()}</td>
             <td><strong>Ksh ${order.total_price}</strong></td>
+            <td>${formatPaymentStatus(order.payment_status)}</td>
             <td>${selectHtml}</td>
         `;
         fullOrdersTableBody.appendChild(tr);
     });
 }
 
+function formatPaymentStatus(paymentStatus) {
+    if (paymentStatus === 'paid') return 'Paid';
+    if (paymentStatus === 'payment_failed') return 'Payment Failed';
+    if (paymentStatus === 'pending_payment') return 'Pending Payment';
+    return 'Unverified';
+}
+
 // Actions
 async function updateStatus(id, newStatus) {
     try {
+        const token = sessionStorage.getItem('token');
         const response = await fetch(`/api/admin/orders/${id}/status`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ status: newStatus })
         });
         if (response.ok) {
@@ -159,9 +221,10 @@ async function updateStatus(id, newStatus) {
 }
 async function toggleStock(id, status) {
     try {
+        const token = sessionStorage.getItem('token');
         await fetch(`/api/admin/products/${id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ in_stock: status })
         });
         await fetchProducts();
@@ -194,9 +257,10 @@ addProductForm.addEventListener('submit', async (e) => {
     };
 
     try {
+        const token = sessionStorage.getItem('token');
         const response = await fetch('/api/admin/products', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify(newProduct)
         });
 

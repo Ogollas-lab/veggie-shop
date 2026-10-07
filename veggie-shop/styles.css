@@ -933,6 +933,11 @@ p {
     animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.payment-pending-icon {
+    color: #b45309;
+    animation: none;
+}
+
 @keyframes bounceIn {
     0% { transform: scale(0); opacity: 0; }
     50% { transform: scale(1.1); }

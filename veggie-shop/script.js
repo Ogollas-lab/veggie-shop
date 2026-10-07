@@ -1,6 +1,6 @@
 // State
 let products = [];
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
 let currentCategory = 'all';
 let searchTerm = '';
 let sortMode = 'default';
@@ -15,9 +15,13 @@ const trackResult = document.getElementById('trackResult');
 const displayOrderId = document.getElementById('displayOrderId');
 const checkoutForm = document.getElementById('checkoutForm');
 const successModal = document.getElementById('successModal');
+const paymentResultIcon = document.getElementById('paymentResultIcon');
+const paymentResultTitle = document.getElementById('paymentResultTitle');
+const paymentResultMessage = document.getElementById('paymentResultMessage');
 const closeCartBtn = document.getElementById('closeCartBtn');
 const cartDrawer = document.getElementById('cartDrawer');
 const cartOverlay = document.getElementById('cartOverlay');
+const cartBtn = document.getElementById('cartBtn');
 const cartItemsContainer = document.getElementById('cartItems');
 const cartCount = document.getElementById('cartCount');
 const cartTotalPrice = document.getElementById('cartTotalPrice');
@@ -55,8 +59,10 @@ const langToggle = document.getElementById('langToggle');
 let currentLang = localStorage.getItem('lang') || 'en';
 
 // Auth State
-let currentUser = JSON.parse(localStorage.getItem('user')) || null;
-let authToken = localStorage.getItem('token') || null;
+let currentUser = JSON.parse(sessionStorage.getItem('user')) || null;
+let authToken = sessionStorage.getItem('token') || null;
+const adminLoginRequested = new URLSearchParams(window.location.search).get('adminLogin') === '1';
+const adminAccessDenied = new URLSearchParams(window.location.search).get('adminDenied') === '1';
 
 // Initialize
 async function init() {
@@ -66,11 +72,21 @@ async function init() {
     checkAuthState();
     await fetchProducts();
     updateCart();
+
+    if (adminLoginRequested) {
+        authModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    if (adminAccessDenied) {
+        window.history.replaceState({}, '', window.location.pathname);
+        window.alert('This account does not have admin access.');
+    }
 }
 
 async function fetchProducts() {
     try {
-        const response = await fetch('http://localhost:3000/api/products');
+        const response = await fetch('/api/products');
         if (!response.ok) throw new Error('Failed to fetch products');
         products = await response.json();
         updateFilteredProducts();
@@ -216,7 +232,7 @@ function updateCart() {
     const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     // Persist cart
-    localStorage.setItem('cart', JSON.stringify(cart));
+    sessionStorage.setItem('cart', JSON.stringify(cart));
 
     // Update UI
     cartCount.textContent = totalItems;
@@ -344,9 +360,9 @@ function setupEventListeners() {
     }
 
     // Cart Drawer Toggle
-    cartBtn.addEventListener('click', openCart);
-    closeCartBtn.addEventListener('click', closeCart);
-    cartOverlay.addEventListener('click', closeCart);
+    if (cartBtn) cartBtn.addEventListener('click', openCart);
+    if (closeCartBtn) closeCartBtn.addEventListener('click', closeCart);
+    if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
 
     // Mobile Menu Toggles
     mobileMenuBtn.addEventListener('click', openMobileMenu);
@@ -410,13 +426,13 @@ function setupEventListeners() {
             btn.disabled = true;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/orders/track?orderId=${orderId}&email=${email}`);
+                const response = await fetch(`/api/orders/track?orderId=${orderId}&email=${encodeURIComponent(email)}`);
                 const data = await response.json();
 
                 if (!response.ok) throw new Error(data.error || 'Tracking failed');
 
                 trackResult.style.display = 'block';
-                const statusClass = `status-${data.status.toLowerCase()}`;
+                const statusClass = `status-${data.status.toLowerCase().replace(/\s+/g, '-')}`;
                 
                 trackResult.innerHTML = `
                     <div class="track-result-card">
@@ -458,70 +474,41 @@ function setupEventListeners() {
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
         btn.disabled = true;
 
-        const amount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 300.00;
-        const phone = document.getElementById('phone').value;
-
         const orderData = {
             name: document.getElementById('name').value,
             email: document.getElementById('email').value,
-            phone: phone,
             address: document.getElementById('address').value,
-            subtotal: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-            deliveryFee: 300.00,
-            total: amount,
             userId: currentUser ? currentUser.id : null,
             items: cart.map(item => ({
                 id: item.id,
-                quantity: item.quantity,
-                price: item.price
+                quantity: item.quantity
             }))
         };
 
         try {
-            // 1. Initiate Paypack Payment
-            btn.innerHTML = '<i class="fa-solid fa-mobile-screen-button fa-bounce"></i> Check your phone...';
-            
-            const payResponse = await fetch('http://localhost:3000/api/pay', {
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving order...';
+            const response = await fetch('/api/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    amount: amount,
-                    phone: phone
-                })
-            });
-
-            if (!payResponse.ok) {
-                const errorData = await payResponse.json();
-                throw new Error(errorData.error || 'Payment initiation failed');
-            }
-
-            console.log('Payment initiated');
-
-            // 2. Save order to database
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Finalizing order...';
-            const response = await fetch('http://localhost:3000/api/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+                    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
                 },
                 body: JSON.stringify(orderData)
             });
 
+            const data = await response.json();
             if (!response.ok) {
-                throw new Error('Failed to place order');
+                throw new Error(data.error || 'Unable to place order.');
             }
 
-            const data = await response.json();
-            console.log('Order success:', data);
-
-            // Display Order ID in success modal
             if (displayOrderId) {
                 displayOrderId.textContent = `#${data.orderId}`;
             }
 
-            // Success transition
+            paymentResultTitle.textContent = 'Payment pending';
+            paymentResultMessage.textContent = 'Your order is saved, but online KES payment is not available yet. No payment was initiated.';
+            paymentResultIcon.className = 'fa-solid fa-clock';
+
             checkoutModal.classList.remove('active');
             successModal.classList.add('active');
             
@@ -531,7 +518,7 @@ function setupEventListeners() {
             checkoutForm.reset();
         } catch (error) {
             console.error('Order error:', error);
-            alert('There was a problem placing your order. Please try again.');
+            alert(error.message || 'There was a problem saving your order. No payment was taken.');
         } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
@@ -629,7 +616,7 @@ function setupAuthListeners() {
         const password = document.getElementById('loginPassword').value;
 
         try {
-            const response = await fetch('http://localhost:3000/api/auth/login', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -638,11 +625,21 @@ function setupAuthListeners() {
             if (response.ok) {
                 currentUser = data.user;
                 authToken = data.token;
-                localStorage.setItem('user', JSON.stringify(currentUser));
-                localStorage.setItem('token', authToken);
+                sessionStorage.setItem('user', JSON.stringify(currentUser));
+                sessionStorage.setItem('token', authToken);
                 checkAuthState();
                 authModal.classList.remove('active');
                 loginForm.reset();
+
+                if (adminLoginRequested) {
+                    if (data.user.is_admin) {
+                        window.location.replace('admin.html');
+                    } else {
+                        window.alert('This account does not have admin access.');
+                    }
+                    return;
+                }
+
                 alert(currentLang === 'en' ? 'Welcome back!' : 'Karibu tena!');
             } else {
                 alert(data.error);
@@ -659,7 +656,7 @@ function setupAuthListeners() {
         const password = document.getElementById('signupPassword').value;
 
         try {
-            const response = await fetch('http://localhost:3000/api/auth/signup', {
+            const response = await fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password })
@@ -679,6 +676,8 @@ function setupAuthListeners() {
     logoutBtn.addEventListener('click', () => {
         currentUser = null;
         authToken = null;
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         checkAuthState();
@@ -752,7 +751,7 @@ async function openUserOrders() {
     userOrdersList.innerHTML = '<p style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading orders...</p>';
 
     try {
-        const response = await fetch('http://localhost:3000/api/user/profile', {
+        const response = await fetch('/api/user/profile', {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         const data = await response.json();

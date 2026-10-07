@@ -100,10 +100,10 @@
                 </div>
 
                 <div class="categories">
-                    <button class="category-btn active">All</button>
-                    <button class="category-btn">Roots</button>
-                    <button class="category-btn">Greens</button>
-                    <button class="category-btn">Alliums</button>
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="Roots">Roots</button>
+                    <button class="category-btn" data-category="Greens">Greens</button>
+                    <button class="category-btn" data-category="Alliums">Alliums</button>
                 </div>
 
                 <div id="productGrid" class="product-grid">
@@ -162,13 +162,13 @@
                         <div class="contact-card">
                             <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
                             <h3>Visit Us</h3>
-                            <p>123 Green Valley, NY 10001</p>
+                            <p>123 Green Valley, Nairobi 00100</p>
                             <p>Monday - Friday: 8am - 6pm</p>
                         </div>
                         <div class="contact-card">
                             <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
                             <h3>Call Us</h3>
-                            <p>+1 (555) 123-4567</p>
+                            <p>+254 757101172 </p>
                             <p>Support is available 24/7</p>
                         </div>
                         <div class="contact-card">
@@ -223,8 +223,8 @@
             </div>
             <div class="footer-contact">
                 <h4>Contact Us</h4>
-                <p><i class="fa-solid fa-location-dot"></i> 123 Green Valley, NY 10001</p>
-                <p><i class="fa-solid fa-phone"></i> +1 (555) 123-4567</p>
+                <p><i class="fa-solid fa-location-dot"></i> 123 Green Valley, Nairobi 00100</p>
+                <p><i class="fa-solid fa-phone"></i> +254 757101172</p>
                 <p><i class="fa-solid fa-envelope"></i> hello@freshveggies.com</p>
             </div>
         </div>
@@ -271,11 +271,6 @@
                         <input type="email" id="email" required placeholder="john@example.com">
                     </div>
                     <div class="form-group">
-                        <label for="phone">Phone Number (MTN/Airtel)</label>
-                        <input type="tel" id="phone" required placeholder="07xxxxxxxx">
-                        <small style="color: var(--text-light); font-size: 0.75rem;">Enter number to receive payment prompt</small>
-                    </div>
-                    <div class="form-group">
                         <label for="address">Delivery Address</label>
                         <textarea id="address" required placeholder="123 Example St, City, Country" rows="3"></textarea>
                     </div>
@@ -317,11 +312,12 @@
             </div>
         </div>
     </div>
+    <div id="successModal" class="modal-overlay">
         <div class="modal success-modal">
-            <div class="success-icon"><i class="fa-solid fa-check-circle"></i></div>
-            <h2>Order Placed Successfully!</h2>
-            <p>Thank you for your purchase. Your Order ID is <strong id="displayOrderId">#0000</strong>.</p>
-            <p>Confirmation has been sent to your email.</p>
+            <div class="success-icon payment-pending-icon"><i id="paymentResultIcon" class="fa-solid fa-clock"></i></div>
+            <h2 id="paymentResultTitle">Payment pending</h2>
+            <p id="paymentResultMessage">Your order is awaiting payment. No payment has been received.</p>
+            <p>Order ID: <strong id="displayOrderId">#0000</strong></p>
             <button id="continueShoppingBtn" class="btn btn-secondary">Continue Shopping</button>
         </div>
     </div>
@@ -395,7 +391,7 @@
     </div>
 
     <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/254700000000?text=Hi! I have a question about the fresh veggies." class="whatsapp-float" target="_blank" title="Chat on WhatsApp">
+    <a href="https://wa.me/254769724049?text=Hi! I have a question about the fresh veggies." class="whatsapp-float" target="_blank" title="Chat on WhatsApp with +254 769 724049">
         <i class="fa-brands fa-whatsapp"></i>
         <span class="whatsapp-badge">1</span>
     </a>

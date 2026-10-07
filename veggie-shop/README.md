@@ -7,7 +7,7 @@ A modern, responsive full-stack eCommerce web application for selling fresh orga
 ## Overview
 Veggie Shop is a beautifully designed, nature-inspired eCommerce platform that allows users to browse a catalog of fresh produce, manage a shopping cart, and complete a secure checkout process. 
 
-The project has evolved into a robust full-stack application featuring user authentication, an administrative dashboard, real-time order tracking, and mobile money payment integration.
+The project is a full-stack demo featuring user authentication, an administrative dashboard, order tracking, and mobile money payment initiation. Production use still requires a durable database and verified payment settlement handling.
 
 ## Key Features
 
@@ -22,8 +22,8 @@ The project has evolved into a robust full-stack application featuring user auth
 
 ### Order Management & Tracking
 - **Real-time Tracking:** Customers can track their orders using their Email and Order ID.
-- **Email Notifications:** Automatic order confirmation emails sent via Nodemailer (Ethereal test mode).
-- **Checkout Flow:** Integrated shipping details collection with automated total calculation including delivery fees.
+- **Email Notifications:** Order confirmations are sent through Nodemailer when SMTP settings are configured; otherwise delivery is skipped.
+- **Checkout Flow:** Collects shipping details and verifies product prices and totals on the server.
 
 ### Administrative Tools
 - **Admin Dashboard:** A dedicated panel (`admin.html`) for store managers.
@@ -44,8 +44,8 @@ The project has evolved into a robust full-stack application featuring user auth
 - **Communication:** **Nodemailer** for automated transactional emails.
 
 ### Payment Integration
-- **Paypack SDK:** Integrated with the Paypack Payment Gateway for mobile money processing (MTN/Airtel).
-- **STK Push:** Initiates direct payment prompts on the user's mobile device during checkout.
+- **KES payments:** Online payment is disabled. Paypack's official API/SDK documentation does not confirm support for Kenya, Kenyan `+254` numbers, KES denomination, or transaction currency verification. Do not configure Paypack credentials for this store or treat pending orders as paid.
+- Orders can be captured for follow-up, but remain in `Pending Payment`; no payment prompt is initiated and fulfillment is blocked until a KES-compatible provider is integrated.
 
 ## Getting Started
 
@@ -62,16 +62,21 @@ The project has evolved into a robust full-stack application featuring user auth
    ```bash
    npm install
    ```
+3. Create `.env` from `.env.example` and set a strong `JWT_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`. Do not add Paypack credentials for this Kenyan KES store unless official/account-specific documentation confirms KES compatibility.
 
 ### Running the Application
 1. Start the backend server:
    ```bash
-   node server.js
+   npm start
    ```
    *The server runs on `http://localhost:3000`.*
 
-2. Open `index.html` in your browser.
-   *Tip: Use a local development server like VS Code Live Server for the best experience.*
+2. Open `http://localhost:3000` in your browser. The Express server hosts both the storefront and its API; opening `index.html` directly is not supported.
+
+### Production Readiness
+Do not deploy this version for live sales until SQLite has been moved to durable managed storage. Online KES payment is disabled because Paypack's published materials do not confirm Kenyan KES support or currency-match verification. Integrate a KES-compatible provider before accepting or fulfilling paid orders.
+
+Run `npm test` to execute the payment-safety integration tests against an isolated temporary SQLite database. The tests do not contact Paypack.
 
 ## API Reference
 
@@ -84,7 +89,7 @@ The project has evolved into a robust full-stack application featuring user auth
 ### User Endpoints (Protected)
 - `GET /api/user/profile` - Fetch user details and personal order history.
 - `POST /api/orders` - Place a new order.
-- `POST /api/pay` - Initiate a Paypack STK Push payment.
+- `POST /api/pay` - Returns `503` while no KES-compatible provider is configured; it never initiates a Paypack transaction.
 
 ### Admin Endpoints
 - `GET /api/admin/orders` - View all system orders.

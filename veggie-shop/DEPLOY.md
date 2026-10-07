@@ -25,8 +25,15 @@ docker build -t gcr.io/[PROJECT_ID]/veggie-shop .
 docker push gcr.io/[PROJECT_ID]/veggie-shop
 ```
 
-## Step 3: Deploy to Cloud Run
-Deploy the container and set the necessary environment variables for security.
+## Step 3: Production Readiness Gate
+
+Do not deploy this version for live sales yet. The application stores data in `shop.db` on the container filesystem, which is not durable across Cloud Run instance replacement and is not shared between instances. The application must first be migrated to a durable managed database.
+
+Online payments are disabled. Paypack's official materials do not confirm Kenya, `+254`, KES, or transaction-currency verification for this integration. Do not configure its credentials or accept Paypack payments for this Kenyan KES store. Integrate a provider that officially supports KES and server-side settlement verification before accepting or fulfilling paid orders.
+
+## Step 4: Deploy After the Readiness Gate
+
+Set `JWT_SECRET` (at least 32 characters), `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ALLOWED_ORIGINS` in the deployment environment. Use Secret Manager rather than putting secrets directly on the command line. Do not enable Paypack for live Kenyan KES payments unless compatibility is confirmed by Paypack.
 
 ```bash
 gcloud run deploy veggie-shop \
@@ -34,18 +41,17 @@ gcloud run deploy veggie-shop \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars="JWT_SECRET=your_secure_secret,PAYPACK_CLIENT_ID=your_id,PAYPACK_CLIENT_SECRET=your_secret"
+  --set-env-vars="NODE_ENV=production,ALLOWED_ORIGINS=https://your-domain.example,ADMIN_EMAIL=admin@your-domain.example" \
+  --set-secrets="JWT_SECRET=jwt-secret:latest,ADMIN_PASSWORD=admin-password:latest"
 ```
 
 ## ⚠️ Important Considerations
 
-### 1. Database Persistence (SQLite)
-Cloud Run is **stateless**. The application currently uses `veggie.db` (SQLite). 
-- **What happens?**: Every time the container scales to zero or restarts, the database is reset to the state it was in when the image was built.
-- **Production Solution**: For real use, migrate to **Google Cloud SQL** (PostgreSQL or MySQL) and update `database.js` to connect to it.
+### 1. Database Persistence
+Cloud Run is stateless. The application currently uses `shop.db` (SQLite), so data can be lost on instance replacement and is not shared across instances. Migrate the database layer to a durable managed database before deployment.
 
 ### 2. Secrets Management
-The `--set-env-vars` flag is the simplest way to provide secrets. For better security, use **Google Secret Manager** and link the secrets to your Cloud Run service.
+Use Google Secret Manager for credentials. Do not commit `.env` or bake it into the container image.
 
 ### 3. Pricing
 Cloud Run has a generous free tier, but monitor your usage in the [Google Cloud Billing Console](https://console.cloud.google.com/billing).
