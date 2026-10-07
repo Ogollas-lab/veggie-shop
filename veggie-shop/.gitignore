@@ -1,0 +1,17 @@
+node_modules/
+.env
+.env.*
+!.env.example
+shop.db
+*.sqlite
+*.sqlite3
+*.log
+coverage/
+.vercel/
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+.DS_Store
